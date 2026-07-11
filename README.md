@@ -65,6 +65,8 @@ Task runners like `concurrently` or VS Code's own `tasks.json` still require *yo
 - Works off common script names (`dev`, `start`) — highly custom script names may not be picked up yet
 - FastAPI entrypoint detection assumes a conventional layout (`main.py` or `app/main.py`)
 - No port-conflict detection yet — coming in a future release
+- Crash/error notifications require a shell with VS Code shell integration support
+  (bash, zsh, PowerShell, fish) — not available in plain `cmd.exe` on Windows
 
 Found a stack it doesn't detect correctly? [Open an issue](https://github.com/REPLACE_WITH_YOUR_USERNAME/workpilot/issues) — real-world project layouts are exactly what shapes the next release.
 
