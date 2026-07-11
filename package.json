@@ -1,0 +1,97 @@
+{
+  "name": "workpilot",
+  "displayName": "WorkPilot",
+  "description": "Detects your project stack (React, Vite, Next.js, Express, FastAPI, Django, Docker) and starts your entire dev environment with one click.",
+  "version": "0.1.0",
+  "publisher": "REPLACE_WITH_YOUR_PUBLISHER_ID",
+  "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/REPLACE_WITH_YOUR_USERNAME/workpilot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/REPLACE_WITH_YOUR_USERNAME/workpilot/issues"
+  },
+  "homepage": "https://github.com/REPLACE_WITH_YOUR_USERNAME/workpilot#readme",
+  "keywords": [
+    "mern",
+    "pern",
+    "dev environment",
+    "task runner",
+    "react",
+    "express",
+    "fastapi",
+    "docker",
+    "productivity",
+    "start server",
+    "run project",
+    "dev workflow",
+    "monorepo",
+    "auto detect",
+    "one click start"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "workpilot.start",
+        "title": "WorkPilot: Start Project",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "workpilot.stop",
+        "title": "WorkPilot: Stop Project",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "workpilot.scan",
+        "title": "WorkPilot: Scan Project (Preview Plan)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "workpilot.start" },
+        { "command": "workpilot.stop" },
+        { "command": "workpilot.scan" }
+      ]
+    },
+    "configuration": {
+      "title": "WorkPilot",
+      "properties": {
+        "workpilot.autoOpenBrowser": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open the browser when a frontend service starts."
+        },
+        "workpilot.installDepsIfMissing": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run install commands (npm install / pip install -r requirements.txt) if node_modules or the venv/site-packages appear missing."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "publish:openvsx": "ovsx publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^2.24.0",
+    "ovsx": "^0.9.1"
+  }
+}
