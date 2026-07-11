@@ -27,6 +27,24 @@ export function readText(p: string): string | undefined {
 }
 
 /**
+ * Distinguishes "no package.json here" from "package.json exists but
+ * couldn't be read" — the latter usually means a cloud-sync placeholder
+ * (OneDrive/Dropbox Files-On-Demand) hasn't downloaded the real file yet,
+ * or a permissions issue. Used to give a useful hint instead of silently
+ * reporting "no services found" when the real cause is unrelated to the
+ * project's actual stack.
+ */
+export function checkFileReadable(p: string): 'missing' | 'unreadable' | 'ok' {
+  if (!exists(p)) return 'missing';
+  try {
+    fs.readFileSync(p, 'utf-8');
+    return 'ok';
+  } catch {
+    return 'unreadable';
+  }
+}
+
+/**
  * Returns immediate subdirectories (not recursive) of a given folder,
  * excluding common noise directories.
  */

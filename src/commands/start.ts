@@ -30,10 +30,29 @@ export async function startCommand(output: vscode.OutputChannel): Promise<void> 
 
   if (result.services.length === 0) {
     output.appendLine('No recognizable services found.');
+
+    if (result.unreadableMarkerFiles.length > 0) {
+      output.appendLine('');
+      output.appendLine('⚠ Found project files that exist but could not be read:');
+      for (const f of result.unreadableMarkerFiles) output.appendLine(`   ${f}`);
+      output.appendLine(
+        'This usually means a cloud-sync placeholder (OneDrive/Dropbox "Files On-Demand") hasn\'t' +
+          ' downloaded the real file yet. Try right-clicking the project folder in File Explorer →' +
+          ' "Always keep on this device", then run Start again.'
+      );
+    }
+
     vscode.window.showWarningMessage(
       'WorkPilot: No recognizable services found (React/Vite/Next/Express/FastAPI/Django/Docker).'
     );
     return;
+  }
+
+  if (result.skippedByDocker.length > 0) {
+    output.appendLine(
+      `ℹ Skipped running natively (already built/run by Docker Compose): ${result.skippedByDocker.join(', ')}`
+    );
+    output.appendLine('');
   }
 
   const config = vscode.workspace.getConfiguration('workpilot');

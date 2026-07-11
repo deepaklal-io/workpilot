@@ -29,4 +29,14 @@ export interface ScanResult {
   workspaceRoot: string;
   services: DetectedService[];
   hasDocker: boolean;
+  /** Names of native services that were detected but dropped because Docker
+   *  Compose already builds/runs that same directory — avoids double-starting
+   *  the same app natively and inside a container at once. */
+  skippedByDocker: string[];
+  /** package.json/requirements.txt/pyproject.toml files that exist on disk
+   *  but couldn't actually be read — usually a cloud-sync placeholder
+   *  (OneDrive/Dropbox Files-On-Demand) that hasn't downloaded yet. Surfaced
+   *  so a zero-result scan doesn't look like "wrong/unsupported stack" when
+   *  it's actually a file-access problem. */
+  unreadableMarkerFiles: string[];
 }

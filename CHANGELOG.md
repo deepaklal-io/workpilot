@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 — Initial release
+## 0.1.1 — Initial release
 
 - Scanner: detects React, Vite, Next.js, Express, FastAPI, Django, Docker Compose
 - `WorkPilot: Scan Project` — preview the detected plan
