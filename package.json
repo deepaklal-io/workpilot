@@ -3,12 +3,12 @@
   "displayName": "WorkPilot",
   "description": "Detects your project stack (React, Vite, Next.js, Express, FastAPI, Django, Docker) and starts your entire dev environment with one click.",
   "version": "0.1.0",
-  "publisher": "REPLACE_WITH_YOUR_PUBLISHER_ID",
+  "publisher": "deepaklal-io",
   "license": "MIT",
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/REPLACE_WITH_YOUR_USERNAME/workpilot.git"
+    "url": "https://github.com/deepaklal-io/workpilot.git"
   },
   "bugs": {
     "url": "https://github.com/REPLACE_WITH_YOUR_USERNAME/workpilot/issues"
