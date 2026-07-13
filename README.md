@@ -1,5 +1,9 @@
 # WorkPilot 🚀
 
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/deepaklal-io.workpilot?label=VS%20Marketplace&color=0078D4)](https://marketplace.visualstudio.com/items?itemName=deepaklal-io.workpilot)
+[![Open VSX Version](https://img.shields.io/open-vsx/v/deepaklal-io/workpilot?label=Open%20VSX&color=A60EE5)](https://open-vsx.org/extension/deepaklal-io/workpilot)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 **Stop typing the same six commands every time you open a project.**
 
 WorkPilot scans your workspace, figures out how your frontend and backend actually start, and launches your entire dev environment with one click — no config file to write, no `concurrently` setup, no remembering which folder needs `npm run dev` vs `uvicorn main:app`.

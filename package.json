@@ -6,6 +6,10 @@
   "publisher": "deepaklal-io",
   "license": "MIT",
   "icon": "icon.png",
+  "galleryBanner": {
+  "color": "#0F172A",
+  "theme": "dark"
+},
   "repository": {
     "type": "git",
     "url": "https://github.com/deepaklal-io/workpilot.git"
