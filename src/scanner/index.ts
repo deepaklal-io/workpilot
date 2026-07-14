@@ -7,7 +7,6 @@ import { detectStreamlit } from './streamlit';
 import { detectDocker } from './docker';
 import { DetectedService, ScanResult } from '../types';
 
-
 /** How many folder levels deep (below the workspace root) to look for
  *  services. 1 misses common layouts like /apps/frontend or /packages/api,
  *  so we go a bit deeper — capped for performance on very large repos. */
@@ -84,12 +83,13 @@ export function scanWorkspace(rootDir: string): ScanResult {
       backendCount++;
       continue;
     }
+
     const streamlitApp = detectStreamlit(dir, appCount === 0 ? 'App' : `App ${appCount + 1}`);
-      if (streamlitApp) {
-        services.push(streamlitApp);
-        claimedDirs.add(dir);
-        appCount++;
-        continue;
+    if (streamlitApp) {
+      services.push(streamlitApp);
+      claimedDirs.add(dir);
+      appCount++;
+      continue;
     }
   }
 

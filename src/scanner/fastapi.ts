@@ -25,6 +25,7 @@ export function detectPythonBackend(dir: string, labelPrefix = 'Backend'): Detec
   const { python, installCommand } = buildPipInstall(dir);
 
   if (blob.includes('fastapi')) {
+    // Try to guess the ASGI entrypoint module. Common conventions: main:app, app.main:app
     const entry = exists(path.join(dir, 'app', 'main.py')) ? 'app.main:app' : 'main:app';
     return {
       name: `${labelPrefix} (FastAPI)`,

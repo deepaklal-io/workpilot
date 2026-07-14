@@ -1,17 +1,23 @@
 import * as vscode from 'vscode';
 import { DetectedService } from '../types';
 import { looksUninstalled, looksMissingVenv } from '../utils/fs';
+import { findExistingVenvDir, isPythonDepsUpToDate } from '../utils/python';
 import { processManager } from './processManager';
 
 /**
  * Decides whether a service's install step should run before its start
- * command, based on simple on-disk heuristics (node_modules / venv presence).
+ * command. For Node projects: does node_modules exist at all. For Python
+ * projects: does a venv exist AND does its install-marker match the current
+ * requirements.txt hash — so install re-runs when dependencies actually
+ * change, not on every single start, and not never once a venv exists once.
  */
 function needsInstall(service: DetectedService, installDepsIfMissing: boolean): boolean {
   if (!installDepsIfMissing || !service.installCommand) return false;
 
-  if (service.type === 'fastapi' || service.type === 'django') {
-    return looksMissingVenv(service.cwd);
+  if (service.type === 'fastapi' || service.type === 'django' || service.type === 'streamlit') {
+    if (looksMissingVenv(service.cwd)) return true;
+    const venvDirName = findExistingVenvDir(service.cwd) ?? 'venv';
+    return !isPythonDepsUpToDate(service.cwd, venvDirName);
   }
   // react, vite, next, express, generic-node all use npm/node_modules
   if (service.type !== 'docker') {
@@ -41,7 +47,11 @@ export function launchService(
 
   if (willInstall && service.installCommand) {
     output.appendLine(`⏳ Installing dependencies for ${service.name}...`);
-    terminal.sendText(service.installCommand);
+    // Each command sent as its own line — never joined with `&&`, which
+    // doesn't work in legacy Windows PowerShell 5.1.
+    for (const cmd of service.installCommand) {
+      terminal.sendText(cmd);
+    }
   }
 
   terminal.sendText(service.command);

@@ -38,7 +38,7 @@ export async function scanCommand(output: vscode.OutputChannel): Promise<void> {
     output.appendLine(`• ${s.name}`);
     output.appendLine(`   dir:     ${s.cwd}`);
     output.appendLine(`   command: ${s.command}`);
-    if (s.installCommand) output.appendLine(`   install: ${s.installCommand}`);
+    if (s.installCommand) output.appendLine(`   install: ${s.installCommand.join(' && ')}`);
     if (s.url) output.appendLine(`   url:     ${s.url}`);
     output.appendLine('');
   }

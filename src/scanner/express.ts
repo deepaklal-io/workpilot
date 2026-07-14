@@ -42,7 +42,7 @@ export function detectNodeBackend(dir: string, labelPrefix = 'Backend'): Detecte
     type: isExpress ? 'express' : 'generic-node',
     cwd: dir,
     command: `npm run ${devScript ?? 'start'}`,
-    installCommand: 'npm install',
+    installCommand: ['npm install'],
     isWebFacing: false,
   };
 }

@@ -21,7 +21,7 @@ export function detectFrontend(dir: string, labelPrefix = 'Frontend'): DetectedS
       type: 'next',
       cwd: dir,
       command: `npm run ${devScript ?? 'dev'}`,
-      installCommand: 'npm install',
+      installCommand: ['npm install'],
       isWebFacing: true,
       url: 'http://localhost:3000',
     };
@@ -33,7 +33,7 @@ export function detectFrontend(dir: string, labelPrefix = 'Frontend'): DetectedS
       type: 'vite',
       cwd: dir,
       command: `npm run ${devScript ?? 'dev'}`,
-      installCommand: 'npm install',
+      installCommand: ['npm install'],
       isWebFacing: true,
       url: 'http://localhost:5173',
     };
@@ -45,7 +45,7 @@ export function detectFrontend(dir: string, labelPrefix = 'Frontend'): DetectedS
       type: 'react',
       cwd: dir,
       command: `npm run ${devScript ?? 'start'}`,
-      installCommand: 'npm install',
+      installCommand: ['npm install'],
       isWebFacing: true,
       url: 'http://localhost:3000',
     };

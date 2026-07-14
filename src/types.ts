@@ -18,8 +18,12 @@ export interface DetectedService {
   cwd: string;
   /** The command to run to start this service, e.g. "npm run dev" */
   command: string;
-  /** Optional install command to run first if dependencies look missing */
-  installCommand?: string;
+  /** Commands to run before `command`, in order, each sent as its own
+   *  terminal line. Using an array instead of one string joined with `&&`
+   *  avoids a real cross-shell bug: `&&` only works as a chaining operator
+   *  in PowerShell 7+, not the legacy "Windows PowerShell" 5.1 that's still
+   *  the default on many Windows machines. Separate lines work everywhere. */
+  installCommand?: string[];
   /** Whether this service is likely to open a browser-facing URL */
   isWebFacing?: boolean;
   /** Best-guess local URL, if known (e.g. from vite/CRA defaults) */
