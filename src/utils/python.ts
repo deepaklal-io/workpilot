@@ -94,11 +94,14 @@ export function buildPipInstall(
 ): { python: string; installCommand: string[]; venvDirName: string } {
   const existingVenvDir = findExistingVenvDir(dir);
   const venvDirName = existingVenvDir ?? 'venv';
-  const python = venvPythonRelativePath(venvDirName);
+  // If a venv already exists, prefer running the venv's python directly.
+  // If no venv exists yet, use the system `python` to create the venv,
+  // and only use the venv python for the subsequent install step.
+  const python = existingVenvDir ? venvPythonRelativePath(venvDirName) : 'python';
 
   const installCommand: string[] = existingVenvDir
     ? [`${python} -m pip install -r ${requirementsFile}`]
-    : [`python -m venv ${venvDirName}`, `${python} -m pip install -r ${requirementsFile}`];
+    : [`python -m venv ${venvDirName}`, `${venvPythonRelativePath(venvDirName)} -m pip install -r ${requirementsFile}`];
 
   return { python, installCommand, venvDirName };
 }

@@ -74,6 +74,8 @@ Task runners like `concurrently` or VS Code's own `tasks.json` still require *yo
 
 Found a stack it doesn't detect correctly? [Open an issue](https://github.com/REPLACE_WITH_YOUR_USERNAME/workpilot/issues) — real-world project layouts are exactly what shapes the next release.
 
+Note: WorkPilot now detects simple Python entrypoints like `app.py` or `main.py` and will run them with your project's Python (venv if present) as `python app.py`.
+
 ## License
 
 MIT

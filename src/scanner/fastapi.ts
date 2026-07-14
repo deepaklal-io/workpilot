@@ -19,10 +19,18 @@ function readDependencyBlob(dir: string): string {
  * a DetectedService for FastAPI or Django if found.
  */
 export function detectPythonBackend(dir: string, labelPrefix = 'Backend'): DetectedService | undefined {
-  const blob = readDependencyBlob(dir);
-  if (!blob) return undefined;
+  // Read dependency files if present (requirements.txt / pyproject.toml).
+  const reqPath = path.join(dir, 'requirements.txt');
+  const pyprojectPath = path.join(dir, 'pyproject.toml');
+  const req = readText(reqPath);
+  const pyproject = readText(pyprojectPath);
+  const blob = [req, pyproject].filter(Boolean).join('\n').toLowerCase();
 
+  // Build pip/venv commands (python path) even when no deps present so
+  // we can prefer a venv python if one exists. Only include install
+  // commands when dependency files actually exist.
   const { python, installCommand } = buildPipInstall(dir);
+  const hasDeps = Boolean(req || pyproject);
 
   if (blob.includes('fastapi')) {
     // Try to guess the ASGI entrypoint module. Common conventions: main:app, app.main:app
@@ -32,7 +40,7 @@ export function detectPythonBackend(dir: string, labelPrefix = 'Backend'): Detec
       type: 'fastapi',
       cwd: dir,
       command: `${python} -m uvicorn ${entry} --reload`,
-      installCommand,
+      installCommand: hasDeps ? installCommand : undefined,
       isWebFacing: true,
       url: 'http://localhost:8000',
     };
@@ -44,10 +52,27 @@ export function detectPythonBackend(dir: string, labelPrefix = 'Backend'): Detec
       type: 'django',
       cwd: dir,
       command: `${python} manage.py runserver`,
-      installCommand,
+      installCommand: hasDeps ? installCommand : undefined,
       isWebFacing: true,
       url: 'http://localhost:8000',
     };
+  }
+
+  // Generic Python app detection: common single-file entrypoints that
+  // people run with `python app.py` or `python main.py`.
+  const candidates = ['app.py', 'main.py', '__main__.py', path.join('app', 'main.py')];
+  for (const candidate of candidates) {
+    const candidatePath = path.join(dir, candidate);
+    if (exists(candidatePath)) {
+      return {
+        name: `${labelPrefix} (Python)` ,
+        type: 'generic-python',
+       cwd: dir,
+        command: `${python} ${candidate}`,
+        installCommand: hasDeps ? installCommand : undefined,
+        isWebFacing: false,
+      };
+    }
   }
 
   return undefined;
