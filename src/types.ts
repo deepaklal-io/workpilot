@@ -5,6 +5,7 @@ export type ServiceType =
   | 'express'
   | 'fastapi'
   | 'django'
+  | 'streamlit'
   | 'docker'
   | 'generic-node'
   | 'generic-python';

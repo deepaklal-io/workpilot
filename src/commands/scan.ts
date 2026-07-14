@@ -17,7 +17,7 @@ export async function scanCommand(output: vscode.OutputChannel): Promise<void> {
   output.appendLine('');
 
   if (result.services.length === 0) {
-    output.appendLine('No recognizable services found (React/Vite/Next/Express/FastAPI/Django/Docker).');
+    output.appendLine('No recognizable services found (React/Vite/Next/Express/FastAPI/Django/Streamlit/Docker).');
 
     if (result.unreadableMarkerFiles.length > 0) {
       output.appendLine('');

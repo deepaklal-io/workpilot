@@ -3,8 +3,10 @@ import { listSubdirs, checkFileReadable } from '../utils/fs';
 import { detectFrontend } from './react';
 import { detectNodeBackend } from './express';
 import { detectPythonBackend } from './fastapi';
+import { detectStreamlit } from './streamlit';
 import { detectDocker } from './docker';
 import { DetectedService, ScanResult } from '../types';
+
 
 /** How many folder levels deep (below the workspace root) to look for
  *  services. 1 misses common layouts like /apps/frontend or /packages/api,
@@ -54,6 +56,7 @@ export function scanWorkspace(rootDir: string): ScanResult {
 
   let frontendCount = 0;
   let backendCount = 0;
+  let appCount = 0;
 
   for (const dir of candidateDirs) {
     if (claimedDirs.has(dir)) continue;
@@ -80,6 +83,13 @@ export function scanWorkspace(rootDir: string): ScanResult {
       claimedDirs.add(dir);
       backendCount++;
       continue;
+    }
+    const streamlitApp = detectStreamlit(dir, appCount === 0 ? 'App' : `App ${appCount + 1}`);
+      if (streamlitApp) {
+        services.push(streamlitApp);
+        claimedDirs.add(dir);
+        appCount++;
+        continue;
     }
   }
 

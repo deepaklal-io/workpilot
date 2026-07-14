@@ -43,7 +43,7 @@ export async function startCommand(output: vscode.OutputChannel): Promise<void> 
     }
 
     vscode.window.showWarningMessage(
-      'WorkPilot: No recognizable services found (React/Vite/Next/Express/FastAPI/Django/Docker).'
+      'WorkPilot: No recognizable services found (React/Vite/Next/Express/FastAPI/Django/Streamlit/Docker).'
     );
     return;
   }
