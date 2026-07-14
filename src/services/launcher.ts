@@ -57,7 +57,7 @@ export function launchService(
   terminal.sendText(service.command);
   output.appendLine(`✔ ${service.name} started (${service.command})`);
 
-  processManager.register(service.name, terminal);
+  processManager.register(service, terminal);
   return terminal;
 }
 

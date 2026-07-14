@@ -3,6 +3,9 @@ import { startCommand } from './commands/start';
 import { stopCommand } from './commands/stop';
 import { scanCommand } from './commands/scan';
 import { processManager } from './services/processManager';
+import { writeInstallMarker } from './utils/python';
+
+const PYTHON_SERVICE_TYPES = new Set(['fastapi', 'django', 'streamlit']);
 
 export function activate(context: vscode.ExtensionContext): void {
   const output = vscode.window.createOutputChannel('WorkPilot');
@@ -26,14 +29,22 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 /**
- * Listens for shell commands finishing inside WorkPilot-owned terminals and
- * surfaces unexpected non-zero exits (crashes, failed installs, servers that
- * refuse to start) to the Output panel and as a warning notification.
+ * Listens for shell commands finishing inside WorkPilot-owned terminals.
+ * Two things happen here:
+ *
+ * 1. Crash/failure surfacing: unexpected non-zero exits (failed installs,
+ *    servers that error out on startup) are logged to the Output panel and
+ *    shown as a warning notification with a "Show Terminal" shortcut.
+ *
+ * 2. Install-success marking: when a Python service's `pip install` command
+ *    specifically finishes with exit code 0, the requirements-hash marker
+ *    is written from here (real Node fs, not a shell command) — see
+ *    writeInstallMarker's doc comment for why it can't be a shell line.
  *
  * Relies on VS Code's terminal shell integration API, which only fires for
  * shells that support it (bash, zsh, pwsh, fish — not cmd.exe) and requires
  * a reasonably recent VS Code version. Feature-detected below so WorkPilot
- * still works normally, just without this extra signal, on older setups.
+ * still works normally, just without these two extras, on older setups.
  */
 function registerCrashDetection(context: vscode.ExtensionContext, output: vscode.OutputChannel): void {
   const api = vscode.window as unknown as {
@@ -56,19 +67,32 @@ function registerCrashDetection(context: vscode.ExtensionContext, output: vscode
   context.subscriptions.push(
     api.onDidEndTerminalShellExecution((event) => {
       const tracked = processManager.find(event.terminal);
-      // Not a WorkPilot terminal, or the exit was requested by Stop Project — ignore.
-      if (!tracked || tracked.stopRequested) return;
+      if (!tracked) return;
 
       const exitCode = event.exitCode;
+      const commandLine = event.execution.commandLine.value;
+
+      // Successful pip install for a Python service → record the marker so
+      // the next run can skip reinstalling, but only now that we've
+      // confirmed via a real exit code that it actually succeeded.
+      if (
+        exitCode === 0 &&
+        PYTHON_SERVICE_TYPES.has(tracked.service.type) &&
+        commandLine.includes('-m pip install')
+      ) {
+        writeInstallMarker(tracked.service.cwd);
+      }
+
+      // Exit was requested by Stop Project — don't report it as a crash.
+      if (tracked.stopRequested) return;
       if (typeof exitCode !== 'number' || exitCode === 0) return;
 
-      const commandLine = event.execution.commandLine.value;
       output.appendLine(
-        `✖ ${tracked.serviceName} exited with code ${exitCode} — command: ${commandLine}`
+        `✖ ${tracked.service.name} exited with code ${exitCode} — command: ${commandLine}`
       );
 
       vscode.window
-        .showWarningMessage(`WorkPilot: ${tracked.serviceName} failed or crashed.`, 'Show Terminal', 'Dismiss')
+        .showWarningMessage(`WorkPilot: ${tracked.service.name} failed or crashed.`, 'Show Terminal', 'Dismiss')
         .then((choice) => {
           if (choice === 'Show Terminal') {
             event.terminal.show();
