@@ -70,8 +70,14 @@ export async function startCommand(output: vscode.OutputChannel): Promise<void> 
   );
 
   if (autoOpenBrowser) {
-    const webService = result.services.find((s) => s.isWebFacing && s.type !== 'docker');
-    if (webService) openBrowserForService(webService, output);
+    const UI_TYPES = new Set(['react', 'vite', 'next', 'streamlit']);
+    // Prefer an actual UI over a bare backend — opening a FastAPI/Express
+    // root route usually just shows a blank/"Not Found" response, which
+    // looks like a failure even though the backend is running fine.
+    const webService =
+      result.services.find((s) => s.isWebFacing && UI_TYPES.has(s.type)) ??
+      result.services.find((s) => s.isWebFacing && s.type !== 'docker');
+    if (webService) void openBrowserForService(webService, output);
   }
 
   vscode.window.showInformationMessage(`WorkPilot: Started ${result.services.length} service(s). 🚀`);
