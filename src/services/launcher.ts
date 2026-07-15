@@ -6,6 +6,10 @@ import { looksUninstalled, looksMissingVenv } from '../utils/fs';
 import { findExistingVenvDir, isPythonDepsUpToDate } from '../utils/python';
 import { processManager } from './processManager';
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * Decides whether a service's install step should run before its start
  * command. For Node projects: does node_modules exist at all. For Python
@@ -32,12 +36,20 @@ function needsInstall(service: DetectedService, installDepsIfMissing: boolean): 
  * Starts one service in its own dedicated VS Code terminal, logging progress
  * to the given output channel, and registers the terminal with the
  * process manager so it can be stopped later.
+ *
+ * A short delay is inserted before the first command and between each
+ * subsequent one. This isn't cosmetic — terminal.sendText() doesn't wait
+ * for the shell to actually be ready to receive input, so text sent right
+ * after createTerminal() (before the shell has finished initializing,
+ * especially PowerShell on Windows) can be dropped or garbled, producing an
+ * intermittently wrong-looking command even though the code always builds
+ * the same correct string.
  */
-export function launchService(
+export async function launchService(
   service: DetectedService,
   output: vscode.OutputChannel,
   installDepsIfMissing: boolean
-): vscode.Terminal {
+): Promise<vscode.Terminal> {
   const terminal = vscode.window.createTerminal({
     name: `WorkPilot: ${service.name}`,
     cwd: service.cwd,
@@ -46,13 +58,15 @@ export function launchService(
   const willInstall = needsInstall(service, installDepsIfMissing);
 
   terminal.show(false);
+  // Give the shell a moment to actually finish initializing before typing
+  // anything into it — see doc comment above for why this matters.
+  await delay(500);
 
   if (willInstall && service.installCommand) {
     output.appendLine(`⏳ Installing dependencies for ${service.name}...`);
-    // Each command sent as its own line — never joined with `&&`, which
-    // doesn't work in legacy Windows PowerShell 5.1.
     for (const cmd of service.installCommand) {
       terminal.sendText(cmd);
+      await delay(300);
     }
   }
 
@@ -71,7 +85,7 @@ function pingUrl(url: string, timeoutMs = 2000): Promise<boolean> {
     const client = url.startsWith('https') ? https : http;
     try {
       const req = client.get(url, { timeout: timeoutMs }, (res) => {
-        res.resume(); // drain the response so the socket can close cleanly
+        res.resume();
         resolve(true);
       });
       req.on('error', () => resolve(false));
@@ -106,11 +120,9 @@ export async function openBrowserForService(service: DetectedService, output: vs
       output.appendLine(`✔ Browser opened → ${service.url}`);
       return;
     }
-    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    await delay(pollIntervalMs);
   }
 
-  // Timed out waiting — open anyway rather than never opening at all;
-  // the server may just be unusually slow rather than actually broken.
   vscode.env.openExternal(vscode.Uri.parse(service.url));
   output.appendLine(`✔ Browser opened → ${service.url} (readiness check timed out after ${maxWaitMs / 1000}s, opened anyway)`);
 }

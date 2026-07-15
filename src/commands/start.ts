@@ -64,7 +64,7 @@ export async function startCommand(output: vscode.OutputChannel): Promise<void> 
     async (progress) => {
       for (const service of result.services) {
         progress.report({ message: service.name });
-        launchService(service, output, installDepsIfMissing);
+        await launchService(service, output, installDepsIfMissing);
       }
     }
   );
