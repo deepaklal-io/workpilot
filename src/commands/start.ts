@@ -28,13 +28,6 @@ export async function startCommand(output: vscode.OutputChannel): Promise<void> 
   output.appendLine(`🚀 WorkPilot starting project: ${root}`);
   output.appendLine('');
 
-  // Print the planned services so users can see exactly what's about to run
-  output.appendLine('Detected services:');
-  for (const s of result.services) {
-    output.appendLine(` - ${s.name} @ ${s.cwd} → ${s.command}`);
-  }
-  output.appendLine('');
-
   if (result.services.length === 0) {
     output.appendLine('No recognizable services found.');
 
@@ -69,15 +62,7 @@ export async function startCommand(output: vscode.OutputChannel): Promise<void> 
   await vscode.window.withProgress(
     { location: vscode.ProgressLocation.Notification, title: 'WorkPilot: Starting project...' },
     async (progress) => {
-      // Deduplicate identical start commands (same cwd + command)
-      const unique: { [key: string]: typeof result.services[0] } = {};
       for (const service of result.services) {
-        const key = `${service.cwd}::${service.command}`;
-        if (!unique[key]) unique[key] = service;
-      }
-      const uniqueServices = Object.values(unique);
-
-      for (const service of uniqueServices) {
         progress.report({ message: service.name });
         launchService(service, output, installDepsIfMissing);
       }

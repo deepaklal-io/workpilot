@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as http from 'http';
+import * as https from 'https';
 import { DetectedService } from '../types';
 import { looksUninstalled, looksMissingVenv } from '../utils/fs';
 import { findExistingVenvDir, isPythonDepsUpToDate } from '../utils/python';
@@ -61,16 +63,54 @@ export function launchService(
   return terminal;
 }
 
+/** Single attempt to reach a URL. Resolves true on ANY response (even a 404
+ *  or redirect proves something is listening on that port), false on
+ *  connection refused/timeout/error. */
+function pingUrl(url: string, timeoutMs = 2000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const client = url.startsWith('https') ? https : http;
+    try {
+      const req = client.get(url, { timeout: timeoutMs }, (res) => {
+        res.resume(); // drain the response so the socket can close cleanly
+        resolve(true);
+      });
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(false);
+      });
+    } catch {
+      resolve(false);
+    }
+  });
+}
+
 /**
- * Opens the browser for the first web-facing, non-API service (heuristic:
- * prefer a frontend url over a bare backend url) once services have had a
- * moment to boot.
+ * Opens the browser for the first web-facing, non-API service once it's
+ * actually ready — polls the URL instead of guessing a fixed delay, since a
+ * fixed delay is unreliable (install time, framework startup time, and
+ * machine speed all vary). Falls back to opening anyway after a generous
+ * max wait, so a slow-but-working server still gets a browser tab
+ * eventually rather than silently never opening one.
  */
-export function openBrowserForService(service: DetectedService, output: vscode.OutputChannel): void {
+export async function openBrowserForService(service: DetectedService, output: vscode.OutputChannel): Promise<void> {
   if (!service.url) return;
-  // Give the dev server a few seconds before opening the browser.
-  setTimeout(() => {
-    vscode.env.openExternal(vscode.Uri.parse(service.url!));
-    output.appendLine(`✔ Browser opened → ${service.url}`);
-  }, 4000);
+
+  const maxWaitMs = 30000;
+  const pollIntervalMs = 1000;
+  const deadline = Date.now() + maxWaitMs;
+
+  while (Date.now() < deadline) {
+    if (await pingUrl(service.url)) {
+      vscode.env.openExternal(vscode.Uri.parse(service.url));
+      output.appendLine(`✔ Browser opened → ${service.url}`);
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+  }
+
+  // Timed out waiting — open anyway rather than never opening at all;
+  // the server may just be unusually slow rather than actually broken.
+  vscode.env.openExternal(vscode.Uri.parse(service.url));
+  output.appendLine(`✔ Browser opened → ${service.url} (readiness check timed out after ${maxWaitMs / 1000}s, opened anyway)`);
 }
