@@ -4,6 +4,7 @@ import { stopCommand } from './commands/stop';
 import { scanCommand } from './commands/scan';
 import { processManager } from './services/processManager';
 import { writeInstallMarker } from './utils/python';
+import { initStatusBar, refreshStatusBar } from './services/statusBar';
 
 const PYTHON_SERVICE_TYPES = new Set(['fastapi', 'django', 'streamlit']);
 
@@ -17,11 +18,14 @@ export function activate(context: vscode.ExtensionContext): void {
     output
   );
 
-  // Keep the process manager's registry accurate if the user (or the
-  // process itself) closes a WorkPilot terminal directly.
+  initStatusBar(context);
+
+  // Keep the process manager's registry — and the status bar — accurate if
+  // the user (or the process itself) closes a WorkPilot terminal directly.
   context.subscriptions.push(
     vscode.window.onDidCloseTerminal((terminal) => {
       processManager.untrack(terminal);
+      refreshStatusBar();
     })
   );
 

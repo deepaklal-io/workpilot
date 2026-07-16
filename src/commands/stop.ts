@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { processManager } from '../services/processManager';
+import { refreshStatusBar } from '../services/statusBar';
 
 export async function stopCommand(output: vscode.OutputChannel): Promise<void> {
   if (!processManager.isRunning()) {
@@ -8,6 +9,7 @@ export async function stopCommand(output: vscode.OutputChannel): Promise<void> {
   }
 
   const stopped = processManager.stopAll();
+  refreshStatusBar();
 
   output.appendLine('');
   output.appendLine('🛑 WorkPilot stopping project...');
