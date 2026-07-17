@@ -21,17 +21,19 @@ npm run dev
 ## Features
 
 - **Zero-config detection** — reads your `package.json`, `requirements.txt`, `pyproject.toml`, and `docker-compose.yml` to figure out your stack. No setup wizard, no YAML to write.
+- **Status bar controls** — Start/Stop toggle and a Scan button live at the bottom of VS Code, always visible. No Command Palette typing needed for everyday use.
 - **One-click start** — opens a dedicated terminal per service, installs missing dependencies automatically, runs the right start command, and opens your browser when the frontend is ready.
+- **Port conflict handling** — checks whether a service's default port is already taken before starting it, and automatically switches to the next free port if so — no manual `EADDRINUSE` debugging.
 - **One-click stop** — shuts down exactly what WorkPilot started. Never touches terminals you opened yourself.
 - **Preview before you run** — `WorkPilot: Scan Project` shows you the exact plan (commands, folders, install steps) before anything executes.
 
 ### Supported today
 
-| Frontend | Backend | Infra |
-|---|---|---|
-| React (CRA) | Express | Docker Compose |
-| Vite | FastAPI | |
-| Next.js | Django | |
+| Frontend | Backend | Data Apps | Infra |
+|---|---|---|---|
+| React (CRA) | Express | Streamlit | Docker Compose |
+| Vite | FastAPI | | |
+| Next.js | Django | | |
 
 Works with split-repo layouts (`/client` + `/server`, `/frontend` + `/backend`) and flat single-app repos alike — the MERN/PERN monorepo pattern most projects actually use.
 
@@ -39,11 +41,12 @@ Works with split-repo layouts (`/client` + `/server`, `/frontend` + `/backend`) 
 
 1. Install WorkPilot
 2. Open your project's root folder in VS Code
-3. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-4. Run **WorkPilot: Scan Project** to preview what it detects
-5. Run **WorkPilot: Start Project** — that's it
+3. Click **🔍 Scan** in the status bar (bottom right) to preview what it detects — or skip straight to step 4
+4. Click **🚀 Start** in the status bar — that's it
 
-Run **WorkPilot: Stop Project** any time to shut everything down cleanly.
+Click **⏹ Stop** (same button, now showing Stop) any time to shut everything down cleanly.
+
+Prefer the Command Palette? `Ctrl+Shift+P` / `Cmd+Shift+P` → `WorkPilot: Start Project` / `WorkPilot: Scan Project` / `WorkPilot: Stop Project` work identically.
 
 ## Commands
 
@@ -58,7 +61,7 @@ Run **WorkPilot: Stop Project** any time to shut everything down cleanly.
 | Setting | Default | Description |
 |---|---|---|
 | `workpilot.autoOpenBrowser` | `true` | Open the browser automatically once a frontend service starts |
-| `workpilot.installDepsIfMissing` | `true` | Run install commands automatically if dependencies look missing |
+| `workpilot.installDepsIfMissing` | `true` | Automatically install dependencies when needed. WorkPilot already skips reinstalling if nothing changed since your last successful install — turn this off only if you never want WorkPilot to run install commands, even on a first run. |
 
 ## Why WorkPilot
 
@@ -67,14 +70,13 @@ Task runners like `concurrently` or VS Code's own `tasks.json` still require *yo
 ## Known limitations (early release)
 
 - Works off common script names (`dev`, `start`) — highly custom script names may not be picked up yet
-- FastAPI entrypoint detection assumes a conventional layout (`main.py` or `app/main.py`)
-- No port-conflict detection yet — coming in a future release
+- FastAPI/Streamlit entrypoint detection assumes a conventional filename (`main.py`/`app.py`/`app/main.py`/`streamlit_app.py`)
+- Auto port-reassignment for React (CRA) and custom Express/Node backends relies on the app reading a `PORT` environment variable — guaranteed for CRA, best-effort for arbitrary Express apps that hardcode their port
+- If a reassigned port changes on a backend, and the frontend has a hardcoded API URL or the backend has a CORS allowlist referencing the old port, those may need manual updating — WorkPilot reassigns the port but doesn't rewrite your source code
 - Crash/error notifications require a shell with VS Code shell integration support
   (bash, zsh, PowerShell, fish) — not available in plain `cmd.exe` on Windows
 
 Found a stack it doesn't detect correctly? [Open an issue](https://github.com/REPLACE_WITH_YOUR_USERNAME/workpilot/issues) — real-world project layouts are exactly what shapes the next release.
-
-Note: WorkPilot now detects simple Python entrypoints like `app.py` or `main.py` and will run them with your project's Python (venv if present) as `python app.py`.
 
 ## License
 

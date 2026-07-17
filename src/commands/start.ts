@@ -3,6 +3,7 @@ import { scanWorkspace } from '../scanner';
 import { launchService, openBrowserForService } from '../services/launcher';
 import { processManager } from '../services/processManager';
 import { setStatusBarBusy, refreshStatusBar } from '../services/statusBar';
+import { resolvePort } from '../services/portAllocator';
 
 export async function startCommand(output: vscode.OutputChannel): Promise<void> {
   const folders = vscode.workspace.workspaceFolders;
@@ -66,12 +67,16 @@ export async function startCommand(output: vscode.OutputChannel): Promise<void> 
 
     setStatusBarBusy('Starting...');
 
+    const launchedServices: typeof result.services = [];
+
     await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: 'WorkPilot: Starting project...' },
       async (progress) => {
         for (const service of result.services) {
           progress.report({ message: service.name });
-          await launchService(service, output, installDepsIfMissing);
+          const resolved = await resolvePort(service, output);
+          launchedServices.push(resolved);
+          await launchService(resolved, output, installDepsIfMissing);
         }
       }
     );
@@ -82,8 +87,8 @@ export async function startCommand(output: vscode.OutputChannel): Promise<void> 
       // root route usually just shows a blank/"Not Found" response, which
       // looks like a failure even though the backend is running fine.
       const webService =
-        result.services.find((s) => s.isWebFacing && UI_TYPES.has(s.type)) ??
-        result.services.find((s) => s.isWebFacing && s.type !== 'docker');
+        launchedServices.find((s) => s.isWebFacing && UI_TYPES.has(s.type)) ??
+        launchedServices.find((s) => s.isWebFacing && s.type !== 'docker');
       if (webService) void openBrowserForService(webService, output);
     }
 

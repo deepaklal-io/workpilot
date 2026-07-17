@@ -53,6 +53,7 @@ export async function launchService(
   const terminal = vscode.window.createTerminal({
     name: `WorkPilot: ${service.name}`,
     cwd: service.cwd,
+    env: service.env,
   });
 
   const willInstall = needsInstall(service, installDepsIfMissing);

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { scanWorkspace } from '../scanner';
+import { resolvePort } from '../services/portAllocator';
 
 export async function scanCommand(output: vscode.OutputChannel): Promise<void> {
   const folders = vscode.workspace.workspaceFolders;
@@ -34,7 +35,8 @@ export async function scanCommand(output: vscode.OutputChannel): Promise<void> {
     return;
   }
 
-  for (const s of result.services) {
+  for (const rawService of result.services) {
+    const s = await resolvePort(rawService, output);
     output.appendLine(`• ${s.name}`);
     output.appendLine(`   dir:     ${s.cwd}`);
     output.appendLine(`   command: ${s.command}`);

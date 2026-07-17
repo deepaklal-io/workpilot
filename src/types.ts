@@ -28,6 +28,10 @@ export interface DetectedService {
   isWebFacing?: boolean;
   /** Best-guess local URL, if known (e.g. from vite/CRA defaults) */
   url?: string;
+  /** Environment variables to set on the terminal, if this service needs
+   *  them (e.g. Create React App only respects a PORT env var — it has no
+   *  CLI flag for choosing a port). */
+  env?: Record<string, string>;
 }
 
 export interface ScanResult {
