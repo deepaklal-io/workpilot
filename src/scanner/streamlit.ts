@@ -3,8 +3,12 @@ import { exists, readText } from '../utils/fs';
 import { buildPipInstall } from '../utils/python';
 import { DetectedService } from '../types';
 
-/** Checked in priority order — first one that exists on disk wins. */
-const ENTRYPOINT_CANDIDATES = ['streamlit_app.py', 'app.py', 'main.py'];
+/** Checked in priority order — first one that exists on disk wins. Checked
+ *  both at the project root and inside common subfolders, since a real-world
+ *  layout like `app/streamlit_app.py` is at least as common as a bare root
+ *  `app.py` — Django/Flask-style `app/` and `src/` conventions carry over. */
+const ENTRYPOINT_FILENAMES = ['streamlit_app.py', 'app.py', 'main.py'];
+const ENTRYPOINT_SUBDIRS = ['', 'app', 'src'];
 
 function hasStreamlitDependency(dir: string): boolean {
   const req = readText(path.join(dir, 'requirements.txt')) ?? '';
@@ -12,8 +16,17 @@ function hasStreamlitDependency(dir: string): boolean {
   return (req + '\n' + pyproject).toLowerCase().includes('streamlit');
 }
 
+/** Returns the entrypoint path relative to dir (e.g. "app.py" or
+ *  "app/streamlit_app.py"), checking the root first, then subfolders — so a
+ *  root-level match is always preferred over a nested one of the same name. */
 function guessEntrypoint(dir: string): string | undefined {
-  return ENTRYPOINT_CANDIDATES.find((f) => exists(path.join(dir, f)));
+  for (const subdir of ENTRYPOINT_SUBDIRS) {
+    for (const filename of ENTRYPOINT_FILENAMES) {
+      const relPath = subdir ? path.join(subdir, filename) : filename;
+      if (exists(path.join(dir, relPath))) return relPath;
+    }
+  }
+  return undefined;
 }
 
 /**

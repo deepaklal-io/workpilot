@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+- Fixed Streamlit entrypoint detection: previously only checked the project root for
+  streamlit_app.py/app.py/main.py — now also checks common `app/` and `src/` subfolders
+  (e.g. `app/streamlit_app.py`), a layout at least as common as a bare root file
+
 ## 0.1.2
 
 - Status bar Start/Scan/Stop buttons — no Command Palette needed for everyday use.
